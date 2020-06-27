@@ -1,0 +1,134 @@
+#######Data Collection
+from datetime import date
+from nsepy import get_history
+itc = get_history(symbol='ITC',
+                   start=date(2002,12,31),
+                   end=date(2018,12,31))
+itc.to_csv('itc.csv', mode='a', header="FALSE")
+
+
+from datetime import date
+from nsepy import get_history
+hul = get_history(symbol='Hindustan Unilever Limited',
+                   start=date(2002,12,31),
+                   end=date(2018,12,31))
+hul.to_csv('hul.csv', mode='a', header="FALSE")
+
+
+from datetime import date
+from nsepy import get_history
+britania = get_history(symbol='Britannia Industries Limited',
+                   start=date(2002,12,31),
+                   end=date(2018,12,31))
+britania.to_csv('britania.csv', mode='a', header="FALSE")
+
+from datetime import date
+from nsepy import get_history
+marico = get_history(symbol='Marico Limited',
+                   start=date(2002,12,31),
+                   end=date(2018,12,31))
+marico.to_csv('marico.csv', mode='a', header="FALSE")
+
+######Macro data
+import eikon as ek
+ek.set_app_key('9070c68586e24e0096fcc6ba8172be383ce24c40')
+
+#gdp
+gdp = ek.get_timeseries(["INGDPY=ECI"], start_date = "2000-12-31", end_date = "2018-12-31", interval = "yearly")
+
+#inflation
+inflation = ek.get_timeseries(["AINCCPIYE=ECI"], start_date = "2000-12-31", end_date = "2018-12-31", interval = "yearly")
+
+#consumer confidence
+inflation = ek.get_timeseries(["AINCNFCONR=ECI"], start_date = "2000-12-31", end_date = "2018-12-31", interval = "yearly")
+
+#unemployment
+unemp = pd.read_csv('E:/Python/unem.csv', parse_dates=["DATE"],index_col="DATE"
+
+
+#####Code
+import pandas as pd
+import numpy as np
+from sklearn.linear_model import LinearRegression
+from sklearn.svm import SVR
+from sklearn.model_selection import train_test_split
+import matplotlib.pyplot as plt
+from sklearn.ensemble import RandomForestRegressor
+import seaborn as sns
+df=pd.read_csv(marico.csv', parse_dates=["Date"],index_col="Date")
+df = df[['Close']]
+
+#Macro data
+gdp=pd.read_csv("gdp.csv",parse_dates=["Date"],index_col="Date")
+inflation=pd.read_csv("inflation.csv",parse_dates=["Date"],index_col="Date")
+unemployment=pd.read_csv("unemployment.csv",parse_dates=["Date"],index_col="Date")
+consumerconfidence=pd.read_csv("consumerconfidence.csv",parse_dates=["Date"],index_col="Date")
+
+#Joining
+data=df.join(gdp)
+data=data.join(inflation)
+data=data.join(unemployment)
+data=data.join(consumerconfidence)
+print(data)
+
+#Interpolation
+data.interpolate(method="time",inplace=True,limit_direction='both')
+print(data)
+
+#Forecast
+forecast_out = 30
+df['Prediction'] = df[['Close']].shift(-forecast_out)
+print(df.tail())
+X = np.array(df.drop(['Prediction'],1))
+X = X[:-forecast_out]
+print(X)
+y = np.array(df['Prediction'])
+y = y[:-forecast_out]
+print(y)
+# Set x_forecast equal to the last 30 rows of the original data set from Adj. Close column
+x_forecast = np.array(df.drop(['Prediction'],1))[-forecast_out:]
+print(x_forecast)
+
+#Split into training and testing
+x_train, x_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+
+#Correlation
+correlation = data.corr(method='pearson')
+print(correlation) 
+ax = plt.subplots(figsize =(9, 8))
+sns.heatmap(data.corr(), annot = True, cmap ="RdPu", linewidths = 0.1)
+
+#Create and train the Support Vector Machine (Regressor)
+svr_rbf = SVR(kernel='rbf', C=1e3, gamma=0.1)
+svr_rbf.fit(x_train, y_train)
+svr_rbf_confidence = svr_rbf.score(x_test, y_test)
+print("svr confidence: ", svr_rbf_confidence)
+svm_prediction = svr_rbf.predict(x_forecast)
+print(svm_prediction)
+
+#Create and train the Linear Regression  Model
+lr = LinearRegression()
+lr.fit(x_train, y_train)
+lr_confidence = lr.score(x_test, y_test)
+r_sq = lr.score(X, y)
+print('coefficient of determination:', r_sq)
+print("lr confidence: ", lr_confidence)
+lr_prediction = lr.predict(x_forecast)
+print(lr_prediction)
+
+#Create and train the Random Forest Model
+rf = RandomForestRegressor(n_estimators=100)
+rf.fit(x_train,y_train)
+y_pred_rf = rf.predict(x_test)
+rf_confidence = rf.score(x_test, y_test)
+print("rf confidence: ", rf_confidence)
+rf_prediction = rf.predict(x_forecast)
+print(rf_prediction)
+
+#Plot
+plt.figure(figsize=(16,8))
+plt.plot(df['Close'], label='Close Price history')
+
+plt.plot(svm_prediction)
+plt.plot(rf_prediction)
+plt.plot(lr_prediction)
