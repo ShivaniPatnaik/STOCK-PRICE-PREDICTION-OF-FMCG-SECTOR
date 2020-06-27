@@ -1,0 +1,47 @@
+#########Data
+from datetime import date
+from nsepy import get_history
+itc = get_history(symbol='ITC',
+                   start=date(2002,12,31),
+                   end=date(2018,12,31))
+itc.to_csv('itc.csv', mode='a', header="FALSE")
+
+
+from datetime import date
+from nsepy import get_history
+hul = get_history(symbol='Hindustan Unilever Limited',
+                   start=date(2002,12,31),
+                   end=date(2018,12,31))
+hul.to_csv('hul.csv', mode='a', header="FALSE")
+
+
+from datetime import date
+from nsepy import get_history
+britania = get_history(symbol='Britannia Industries Limited',
+                   start=date(2002,12,31),
+                   end=date(2018,12,31))
+britania.to_csv('britania.csv', mode='a', header="FALSE")
+
+from datetime import date
+from nsepy import get_history
+marico = get_history(symbol='Marico Limited',
+                   start=date(2002,12,31),
+                   end=date(2018,12,31))
+marico.to_csv('marico.csv', mode='a', header="FALSE")
+
+
+########Macro Data
+import eikon as ek
+ek.set_app_key('9070c68586e24e0096fcc6ba8172be383ce24c40')
+
+#gdp
+gdp = ek.get_timeseries(["INGDPY=ECI"], start_date = "2000-12-31", end_date = "2018-12-31", interval = "yearly")
+
+#inflation
+inflation = ek.get_timeseries(["AINCCPIYE=ECI"], start_date = "2000-12-31", end_date = "2018-12-31", interval = "yearly")
+
+#consumer confidence
+inflation = ek.get_timeseries(["AINCNFCONR=ECI"], start_date = "2000-12-31", end_date = "2018-12-31", interval = "yearly")
+
+#unemployment
+unemp = pd.read_csv('E:/Python/unem.csv', parse_dates=["DATE"],index_col="DATE"
